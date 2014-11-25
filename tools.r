@@ -9,6 +9,17 @@ read<-function(symbol){
   as.xts(read.zoo(file=paste("/data/stocks/history/" ,symbol,".csv",sep=""),header = TRUE,sep=",", format="%Y-%m-%d"))
 }
 
+#移动平均
+ma<-function(cdata,mas=c(5,20,60), name="stock"){ 
+  ldata<-cdata
+  for(m in mas){
+    ldata<-merge(ldata,EMA(cdata,m))
+  }
+  ldata<-na.locf(ldata, fromLast=TRUE)
+  names(ldata)<-c(paste(name, '_value', sep=''), paste(name, '_ma',mas,sep=''))
+  return(ldata)
+}
+
 #模拟交易
 trade<-function(tdata,capital=100000,position=1,fee=0.00003){#交易信号,本金,持仓比例,手续费比例
   amount<-0       #持股数量
