@@ -1,4 +1,4 @@
-tradeSignal<-function(stock) {
+trade_signal<-function(stock) {
   close<-stock$Adjusted
   data<-close
   data$dif<-EMA(close,12)-EMA(close,26)

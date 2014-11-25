@@ -61,3 +61,54 @@ trade<-function(tdata,capital=100000,position=1,fee=0.00003){#交易信号,本�
     fall=fall
   ))
 }
+
+draw_close<-function(stock, title='stock'){
+  close_ma<-ma(stock$Adjusted, c(5,20), 'close')
+  g<-ggplot(aes(x=Index, y=Value),data=data.frame(fortify(close_ma[,1],melt=TRUE), type="close"))
+  g<-g+geom_line()
+  g<-g+geom_line(aes(colour=Series),data=data.frame(fortify(close_ma[,-1],melt=TRUE), type="close"))
+  g<-g+facet_grid(type ~ .,scales = "free_y")
+  g
+}
+
+draw_volume<-function(g, stock){
+  volume_ma<-ma(stock$Volume, c(5,10), 'volume')
+  g<-g+geom_bar(stat="identity", data=data.frame(fortify(volume_ma[,1],melt=TRUE), type="volume"))
+  g<-g+geom_line(aes(colour=Series),data=data.frame(fortify(volume_ma[,-1],melt=TRUE), type="volume"))
+  g
+}
+
+draw_macd<-function(g, stock){
+  close<-stock$Adjusted
+  data<-close
+  data$dif<-EMA(close,12)-EMA(close,26)
+  data<-na.locf(data, fromLast=TRUE)
+  data$dea<-EMA(data$dif,9)
+  data<-na.locf(data, fromLast=TRUE)
+  names(data)<-c('close', 'dif', 'dea')
+  
+  g<-g+geom_line(aes(colour=Series),data=data.frame(fortify(data$dif,melt=TRUE), type="macd"))
+  g<-g+geom_line(aes(colour=Series),data=data.frame(fortify(data$dea,melt=TRUE), type="macd"))
+  g
+}
+
+draw_cash<-function(g,result) {
+  adata<-as.xts(result$ticks[which(result$ticks$op=='S'),]['cash'])
+  g<-g+geom_line(aes(x=as.Date(Index), y=Value, colour=Series),data=data.frame(fortify(adata,melt=TRUE), type='cash'))
+  g
+}
+
+draw_range<-function(g, result, stock){
+  yrng <-range(stock$Adjusted)
+  plan<-as.xts(result$rise[c(1,2)])
+  rise_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='rise_plan')
+  plan<-as.xts(result$fall[c(1,2)])
+  fall_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='fall_plan')
+  plan<-rbind(rise_plan, fall_plan)
+  plan<-data.frame(plan, type='close')
+  g<-g+geom_rect(aes(NULL, NULL,xmin=start,xmax=end,fill=plan),ymin = yrng[1], ymax = yrng[2],data=plan)
+
+  g<-g+scale_fill_manual(values =alpha(c("blue", "red"), 0.2))
+  g
+}
+
