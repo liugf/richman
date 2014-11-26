@@ -23,9 +23,9 @@ ma<-function(cdata,mas=c(5,20,60), name="stock"){
 # MACD
 macd<-function(cdata,conf=c(12,26,9)){ 
   data<-cdata
-  data$dif<-EMA(cdata,12)-EMA(cdata,26)
+  data$dif<-EMA(cdata,conf[1])-EMA(cdata,conf[2])
   data<-na.locf(data, fromLast=TRUE)
-  data$dea<-EMA(data$dif,9)
+  data$dea<-EMA(data$dif,conf[3])
   data<-na.locf(data, fromLast=TRUE)
   names(data)<-c('value', 'dif', 'dea')
   return(data)
@@ -79,6 +79,13 @@ draw_close<-function(stock, title='stock'){
   g<-g+geom_line(aes(x=Index, y=Value),data=data.frame(fortify(close_ma[,1],melt=TRUE), type="close"))
   g<-g+geom_line(aes(x=Index, y=Value,colour=Series),data=data.frame(fortify(close_ma[,-1],melt=TRUE), type="close"))
   g<-g+facet_grid(type ~ .,scales = "free_y")
+  g
+}
+
+draw_bias<-function(g, stock, span=c(12,26)){
+  data<-ma(stock$Adjusted, span)
+  data$bias<-(data[,1]-data[,2])/data[,2] * 100
+  g<-g+geom_line(aes(x=Index, y=Value),data=data.frame(fortify(data$bias,melt=TRUE), type="bias"))
   g
 }
 
