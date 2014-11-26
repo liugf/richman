@@ -82,10 +82,14 @@ draw_close<-function(stock, title='stock'){
   g
 }
 
-draw_bias<-function(g, stock, span=c(12,26)){
-  data<-ma(stock$Adjusted, span)
-  data$bias<-(data[,1]-data[,2])/data[,2] * 100
-  g<-g+geom_line(aes(x=Index, y=Value),data=data.frame(fortify(data$bias,melt=TRUE), type="bias"))
+draw_bias<-function(g, stock, spans=c(5,10)){
+  data<-ma(stock$Adjusted, spans)
+  bias<-stock$Adjusted
+  for(i in 1:length(spans)) {
+    bias<-merge(bias, (data[,1]-data[,1+i])/data[,1+i] * 100)
+  }
+  names(bias)<-c('close',paste('bias',spans,sep=''))
+  g<-g+geom_line(aes(x=Index, y=Value, colour=Series),data=data.frame(fortify(bias[,-1],melt=TRUE), type="bias"))
   g
 }
 
