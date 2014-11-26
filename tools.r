@@ -20,6 +20,17 @@ ma<-function(cdata,mas=c(5,20,60), name="stock"){
   return(ldata)
 }
 
+# MACD
+macd<-function(cdata,conf=c(12,26,9)){ 
+  data<-cdata
+  data$dif<-EMA(cdata,12)-EMA(cdata,26)
+  data<-na.locf(data, fromLast=TRUE)
+  data$dea<-EMA(data$dif,9)
+  data<-na.locf(data, fromLast=TRUE)
+  names(data)<-c('value', 'dif', 'dea')
+  return(data)
+}
+
 #模拟交易
 trade<-function(tdata,capital=100000,position=1,fee=0.00003){#交易信号,本金,持仓比例,手续费比例
   amount<-0       #持股数量
@@ -79,14 +90,7 @@ draw_volume<-function(g, stock){
 }
 
 draw_macd<-function(g, stock){
-  close<-stock$Adjusted
-  data<-close
-  data$dif<-EMA(close,12)-EMA(close,26)
-  data<-na.locf(data, fromLast=TRUE)
-  data$dea<-EMA(data$dif,9)
-  data<-na.locf(data, fromLast=TRUE)
-  names(data)<-c('close', 'dif', 'dea')
-  
+  data<-macd(stock$Adjusted)  
   g<-g+geom_line(aes(x=Index, y=Value,colour=Series),data=data.frame(fortify(data$dif,melt=TRUE), type="macd"))
   g<-g+geom_line(aes(x=Index, y=Value,colour=Series),data=data.frame(fortify(data$dea,melt=TRUE), type="macd"))
   g
