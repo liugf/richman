@@ -1,8 +1,8 @@
 source(file="tools.r",encoding="UTF-8")
 source(file="strategy1.r",encoding="UTF-8")
 
-symbol<-"03983.HK"
-stock<-read(symbol)['2012-01/2014-10']
+symbol<-"00116.HK"
+stock<-read(symbol)['2010-07/2014-10']
 
 tdata<-trade_signal(stock)
 result<-trade(tdata,100000)

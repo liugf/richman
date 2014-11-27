@@ -116,9 +116,17 @@ draw_cash<-function(g,result) {
 draw_range<-function(g, result, stock){
   yrng <-range(stock$Adjusted)
   plan<-as.xts(result$rise[c(1,2)])
-  rise_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='rise_plan')
+  if(empty(plan)){
+    rise_plan<-data.frame()
+  } else {
+    rise_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='rise_plan')
+  }
   plan<-as.xts(result$fall[c(1,2)])
-  fall_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='fall_plan')
+  if(empty(plan)){
+    fall_plan<-data.frame()
+  } else {
+    fall_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='fall_plan')
+  }
   plan<-rbind(rise_plan, fall_plan)
   plan$type<-'close'
   plan$low<-yrng[1]
