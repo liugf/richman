@@ -73,7 +73,16 @@ macd<-function(cdata,conf=c(12,26,9)){
   return(data)
 }
 
-
+# BIAS
+bias<-function(cdata,spans=c(5,10), name="stock"){ 
+  data<-ma(cdata, spans)
+  bias<-cdata
+  for(i in 1:length(spans)) {
+    bias<-merge(bias, (data[,1]-data[,1+i])/data[,1+i] * 100)
+  }
+  names(bias)<-c(paste(name, '_value', sep=''), paste(name, '_bias',spans,sep=''))
+  return(bias)
+}
 
 draw_close<-function(stock, title='stock'){
   close_ma<-ma(stock$Adjusted, c(5,20), 'close')
@@ -85,13 +94,8 @@ draw_close<-function(stock, title='stock'){
 }
 
 draw_bias<-function(g, stock, spans=c(5,10)){
-  data<-ma(stock$Adjusted, spans)
-  bias<-stock$Adjusted
-  for(i in 1:length(spans)) {
-    bias<-merge(bias, (data[,1]-data[,1+i])/data[,1+i] * 100)
-  }
-  names(bias)<-c('close',paste('bias',spans,sep=''))
-  g<-g+geom_line(aes(x=Index, y=Value, colour=Series),data=data.frame(fortify(bias[,-1],melt=TRUE), type="bias"))
+  data<-bias(stock$Adjusted, spans)
+  g<-g+geom_line(aes(x=Index, y=Value, colour=Series),data=data.frame(fortify(data[,-1],melt=TRUE), type="bias"))
   g
 }
 
