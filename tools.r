@@ -4,9 +4,20 @@ library(TTR)
 library(ggplot2)
 library(scales)
 
+# 定义作图主题
+theme<-chartTheme("white")
+theme$dn.col <- "green"
+theme$up.col <- "red"
+
 #本地历史读数据
 read<-function(symbol){  
-  as.xts(read.zoo(file=paste("/data/stocks/history/" ,symbol,".csv",sep=""),header = TRUE,sep=",", format="%Y-%m-%d"))
+  s<-as.xts(read.zoo(file=paste("/data/stocks/history/" ,symbol,".csv",sep=""),header = TRUE,sep=",", format="%Y-%m-%d"))
+  factor<-s$Adjusted / s$Close
+  s$Open<-s$Open*factor
+  s$Close<-s$Close*factor
+  s$High<-s$High*factor
+  s$Low<-s$Low*factor
+  s
 }
 
 #模拟交易
