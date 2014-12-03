@@ -20,6 +20,10 @@ read<-function(symbol){
   s
 }
 
+stock_list<-function() {
+  l<-read.csv(file="/data/stocks/stocks.csv",header = TRUE,sep=",")
+}
+
 #模拟交易
 trade<-function(tdata,capital=100000,position=1,fee=0.00003){#交易信号,本金,持仓比例,手续费比例
   amount<-0       #持股数量
