@@ -82,6 +82,22 @@ bias<-function(cdata,spans=c(5,10), name="stock"){
   return(bias)
 }
 
+market_value<-function(stock,ticks) {
+  amount<-0       #持股数量
+  cash<-ticks[1,]$asset   #现金 
+  stock$asset<-0
+  tick_index <- 1
+  for(i in 1:nrow(stock)){    
+    if (tick_index <= nrow(ticks) && row.names(ticks[tick_index,]) == index(stock[i])){
+      amount<-ticks[tick_index,]$amount
+      cash<-ticks[tick_index,]$cash
+      tick_index<-tick_index+1      
+    }
+    stock[i,]$asset<-cash+amount*stock[i]$Adjusted # 资产总值
+  }
+  stock$asset
+}
+
 draw_close<-function(stock, title='stock'){
   close_ma<-ma(stock$Adjusted, c(5,20), 'close')
   g<-ggplot()
