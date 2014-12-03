@@ -25,7 +25,7 @@ stock_list<-function() {
 }
 
 #模拟交易
-trade<-function(tdata,capital=100000,position=1,fee=0.00003){#交易信号,本金,持仓比例,手续费比例
+trade<-function(tdata, capital=100000,unit=100) {
   amount<-0       #持股数量
   cash<-capital   #现金
   
@@ -33,37 +33,20 @@ trade<-function(tdata,capital=100000,position=1,fee=0.00003){#交易信号,本�
   for(i in 1:nrow(tdata)){
     row<-tdata[i,]
     if(row$op=='B'){
-      amount<-floor(cash/row$Value)
+      amount<-floor(cash/(row$Value*unit))*unit
       cash<-cash-amount*row$Value
     }
-    
     if(row$op=='S'){
       cash<-cash+amount*row$Value
       amount<-0
     }
-    
     row$cash<-cash #现金
     row$amount<-amount #持股数量
     row$asset<-cash+amount*row$Value # 资产总值
     ticks<-rbind(ticks,row)
   }
-  
   ticks$diff<-c(0,diff(ticks$asset)) # 资产总值差
-  
-  #赚钱的操作
-  rise<-ticks[c(which(ticks$diff>0)-1,which(ticks$diff>0)),]
-  rise<-rise[order(row.names(rise)),]
-  
-  #赔钱的操作
-  fall<-ticks[c(which(ticks$diff<0)-1,which(ticks$diff<0)),]
-  fall<-fall[order(row.names(fall)),]
-  
-  
-  return(list(
-    ticks=ticks,
-    rise=rise,
-    fall=fall
-  ))
+  ticks
 }
 
 #移动平均
@@ -129,20 +112,28 @@ draw_macd<-function(g, stock){
 }
 
 draw_cash<-function(g,result) {
-  adata<-as.xts(result$ticks[which(result$ticks$op=='S'),]['cash'])
+  adata<-as.xts(result[which(result$op=='S'),]['cash'])
   g<-g+geom_line(aes(x=as.Date(Index), y=Value, colour=Series),data=data.frame(fortify(adata,melt=TRUE), type='cash'))
   g
 }
 
-draw_range<-function(g, result, stock){
+draw_range<-function(g, ticks, stock){
+  #赚钱的操作
+  rise<-ticks[c(which(ticks$diff>0)-1,which(ticks$diff>0)),]
+  rise<-rise[order(row.names(rise)),]
+  
+  #赔钱的操作
+  fall<-ticks[c(which(ticks$diff<0)-1,which(ticks$diff<0)),]
+  fall<-fall[order(row.names(fall)),]
+  
   yrng <-range(stock$Adjusted)
-  plan<-as.xts(result$rise[c(1,2)])
+  plan<-as.xts(rise[c(1,2)])
   if(empty(plan)){
     rise_plan<-data.frame()
   } else {
     rise_plan<-data.frame(start=as.Date(index(plan)[which(plan$op=='B')]),end=as.Date(index(plan)[which(plan$op=='S')]),plan='rise_plan')
   }
-  plan<-as.xts(result$fall[c(1,2)])
+  plan<-as.xts(fall[c(1,2)])
   if(empty(plan)){
     fall_plan<-data.frame()
   } else {
