@@ -164,3 +164,16 @@ draw_range<-function(g, ticks, stock){
   g
 }
 
+trade_all<-function(stocks,strategy,capital=100000,period=''){
+  stocks$asset<-capital
+  for(i in 1:nrow(stocks)) {
+    stock<-read(stocks[i,]$symbol)[period]
+    if(nrow(stock)==0) next
+    
+    tdata<-strategy(stock)
+    ticks<-trade(tdata,100000,stocks[i,]$unit)  
+    value<-market_value(stock,ticks)
+    stocks[i,]$asset<-last(value)$asset
+  }
+  stocks
+}
